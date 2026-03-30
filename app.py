@@ -175,3 +175,4 @@ else:
         for i, node in enumerate(st.session_state.path[:-1]):
             ans = st.session_state.answers[i]
             st.write(f"**{node.label}:** {ans}")
+        st.write(f"-> {labels[node.label]}")
