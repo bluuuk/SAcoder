@@ -9,16 +9,16 @@ class Tree:
     def is_leaf(self) -> bool:
         return self.yes is None and self.no is None
 
-Q8 = Tree(label="Q8", no=Tree("P5"), yes=Tree("P4"))    
-Q7 = Tree(label="Q7", no=Q8, yes=Tree("P6"))    
-Q6 = Tree(label="Q6", yes=Q7, no=Tree("P3"))   
-Q5 = Tree(label="Q5", yes=Q6, no=Tree("P1"))  
-Q10 = Tree(label="Q10", yes=Tree("N"), no=Tree("Y"))  
-Q9 = Tree(label="Q9", yes=Tree("Pw"), no=Q10)  
-Q4 = Tree(label="Q4", yes=Q5, no=Q9)  
-Q3 = Tree(label="Q3", yes=Tree("T"), no=Q4)  
-Q2 = Tree(label="Q2", yes=Q3, no=Tree("M2"))  
-SAcoding = Tree(label="Q1", yes=Tree("M1"), no=Q2)  
+Q8 = Tree(label="Q8",       no=Tree("P5"), yes=Tree("P4"))    
+Q7 = Tree(label="Q7",       yes=Tree("P6"), no=Q8)    
+Q6 = Tree(label="Q6",       no=Tree("P3"), yes=Q7)   
+Q5 = Tree(label="Q5",       no=Tree("P1"), yes=Q6)  
+Q10 = Tree(label="Q10",     yes=Tree("N"), no=Tree("T'"))  
+Q9 = Tree(label="Q9",       yes=Tree("P2"), no=Q10)  
+Q4 = Tree(label="Q4",       yes=Q5, no=Q9)  
+Q3 = Tree(label="Q3",       yes=Tree("T"), no=Q4)  
+Q2 = Tree(label="Q2",       no=Tree("M2"), yes=Q3)  
+SAcoding = Tree(label="Q1", no=Tree("M1"), yes=Q2)  
 
 st.set_page_config(page_title="SAcoding Tool", layout="centered")
 st.title("🔐 Security Advice Coding (SAcoding)")
@@ -43,9 +43,9 @@ def reset_tool():
     st.session_state.answers = []
     st.rerun()
 
-def handle_answer(ans_bool, ans_text):
+def handle_answer(ans_bool):
     last = st.session_state.path[-1]
-    st.session_state.answers.append(ans_text) # Track the text of the answer
+    st.session_state.answers.append("Yes" if ans_bool else "No") # Track the text of the answer
     if ans_bool:
         st.session_state.path.append(last.yes)
     else:
@@ -132,16 +132,14 @@ if not step.is_leaf():
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        if st.button("⬅️ Yes"):
-            handle_answer(True, "Yes")
+        st.button("⬅️ Yes", on_click=handle_answer, args=(True))
 
     with col2:
-        if st.button("No ➡️"):
+        st.button("No ➡️", on_click=handle_answer, args=(False))
+        if st.button(""):
             handle_answer(False, "No")
-            
     with col3:
-        if st.button("⬆️ Back"):
-            go_back()
+        st.button("⬆️ Back", on_click=go_back, )
 
 else:
     # Safely get the label, default to "Unknown" if missing from dict
