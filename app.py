@@ -108,12 +108,10 @@ labels = {
     "P1": "Incompletely Specified Practice",
     "P2": "General Policy/Approach",
     "P3": "Infeasible Practice",
-    "P4": "Security Expert Practice",
-    "P5": "IT Specialist Practice",
-    "P6": "End-User Practice",
+    "P4": "Security Expert",
+    "P5": "IT Specialist",
+    "P6": "End-User",
     "N": "Security Principle",
-    "Pw": "General Policy/Approach", 
-    "Y": "General Policy/Approach" 
 }
 
 # ---- UI RENDERING ---- #
