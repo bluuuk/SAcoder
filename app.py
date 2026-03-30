@@ -132,10 +132,10 @@ labels = {
     "T'": "Outcome",
     "P1": "Incompletely Specified Practice",
     "P2": "General Policy/Approach",
-    "P3": "Infeasible Practice",
-    "P4": "Security Expert",
-    "P5": "IT Specialist",
-    "P6": "End-User",
+    "*P3": "Infeasible Practice",
+    "*P4": "Security Expert",
+    "*P5": "IT Specialist",
+    "*P6": "End-User",
     "N": "Security Principle",
 }
 

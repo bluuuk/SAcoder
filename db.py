@@ -1,25 +1,37 @@
 from pymongo import MongoClient
 import datetime
 
-def push_data(db, data):
-    """
-    Push classification result to MongoDB using the provided database object.
-    Adds a timestamp to the data before pushing.
-    Raises an exception if the operation fails.
-    """
-    collection = db["classifications"]
-    data["timestamp"] = datetime.datetime.now(datetime.timezone.utc)
-    result = collection.insert_one(data)
-    if not result.acknowledged:
-        raise Exception("MongoDB insert_one was not acknowledged.")
-    return result.inserted_id
+def get_next_advice(collection,user_id):
+    return collection.find_one({
+        "codes": {
+            "$elemMatch": {
+                "userId": user_id,
+                "tag": None
+            }
+        }
+    })
 
-def pull_data(db, query=None):
-    """
-    Pull classification results from MongoDB using the provided database object.
-    Raises an exception if the operation fails.
-    """
-    if query is None:
-        query = {}
-    collection = db["classifications"]
-    return list(collection.find(query).sort("timestamp", -1))
+def submit_tag(collection,advice_id, user_id, tag_value):
+    result = collection.update_one(
+        {
+            "_id": advice_id,
+            "codes.userId": user_id,
+            "codes.tag": None  # prevents overwrite
+        },
+        {
+            "$set": {
+                "codes.$.tag": tag_value
+            }
+        }
+    )
+    return result.modified_count == 1
+
+def remaining_tags(collection,user_id):
+    return collection.count_documents({
+        "assignments": {
+            "$elemMatch": {
+                "userId": user_id,
+                "tag": None
+            }
+        }
+        })
