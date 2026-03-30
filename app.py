@@ -14,6 +14,8 @@ def init_connection():
         st.error(f"Failed to connect to MongoDB: {e}")
         return None
 
+mongo = init_connection()
+
 class Tree:
     def __init__(self,label : str, yes = None, no = None):
         self.label = label
