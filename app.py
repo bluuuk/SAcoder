@@ -230,9 +230,9 @@ else:
         st.success("No uncoded advice items remain for your alias.")
     else:
         st.markdown("### Advice Item")
-        advice_text = st.session_state.current_advice.advice
+        advice_text = st.session_state.current_advice
         if advice_text:
-            st.info(advice_text)
+            st.info(advice_text.advice)
         else:
             st.error("Loaded item, but no advice text field was found.")
 
