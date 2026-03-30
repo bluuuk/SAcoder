@@ -161,17 +161,16 @@ else:
         # Safely get the label, default to "Unknown" if missing from dict
         classification = labels.get(step.label, "Unknown Classification")
         st.success(f"➡️ Classified as: **{step.label}** ({classification})")
+        st.markdown("### 🧭 Decision Path")
+        # Corrected loop to safely map over the path and the recorded answers
+        for i, node in enumerate(st.session_state.path[:-1]):
+            ans = st.session_state.answers[i]
+            st.write(f"**{node.label}:** {ans}")
         
         col_res1, col_res2 = st.columns(2)
         with col_res1:
             if st.button("💾 Save Result",shortcut="enter"):
                 st.toast("Logic for saving would trigger here!", icon="💾")
         with col_res2:
-            st.button("🔄 Reset",on_click=reset_tool,shortcut="r")
+            st.button("🔄 Reset",on_click=reset_tool)
 
-        st.markdown("### 🧭 Decision Path")
-        # Corrected loop to safely map over the path and the recorded answers
-        for i, node in enumerate(st.session_state.path[:-1]):
-            ans = st.session_state.answers[i]
-            st.write(f"**{node.label}:** {ans}")
-        st.write(f"-> {labels[node.label]}")
