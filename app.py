@@ -2,6 +2,9 @@ import streamlit as st
 from pymongo import MongoClient
 from db import get_next_advice, remaining_tags, submit_tag
 
+DATABASE="sacoder"
+
+
 @st.cache_resource
 def init_connection():
     """Initialize connection to MongoDB using st.secrets."""
@@ -23,7 +26,7 @@ def get_collection():
         return None
 
     try:
-        database_name = st.secrets["mongo"].get("database", "sacoder")
+        database_name = st.secrets["mongo"].get("database", "dataset")
         collection_name = st.secrets["mongo"].get("collection", "advices")
         return mongo[database_name][collection_name]
     except Exception as e:
