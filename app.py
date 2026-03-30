@@ -21,7 +21,7 @@ Q2 = Tree(label="Q2",       no=Tree("M2"), yes=Q3)
 SAcoding = Tree(label="Q1", no=Tree("M1"), yes=Q2)  
 
 st.set_page_config(page_title="SAcoding Tool", layout="centered")
-st.title("🔐 Security Advice Coding (SAcoding)")
+st.title("🔐 Security Advice Coding")
 
 # ---- STATE ---- #
 if "path" not in st.session_state:
@@ -126,15 +126,16 @@ if not step.is_leaf():
     # Display the help text ABOVE the question
     st.markdown(f"**💡Questions description**\n\n*{help_text}*")
     st.subheader(f"{step.label}: {question_text}")
+    st.markdown(f"**Possible advice**\n\n*{help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow")
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.button("⬅️ Yes", on_click=handle_answer, args=(True,))
+        st.button("⬅️ No ", shortcut="left",on_click=handle_answer, args=(False,))
     with col2:
-        st.button("No ➡️", on_click=handle_answer, args=(False,))
+        st.button("⬆️ Back ⬆️", shortcut="up",on_click=go_back)
     with col3:
-        st.button("⬆️ Back", on_click=go_back)
+        st.button("Yes ➡️ ",shortcut="right",on_click=handle_answer, args=(True,))
 
 else:
     # Safely get the label, default to "Unknown" if missing from dict
