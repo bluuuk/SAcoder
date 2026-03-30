@@ -2,7 +2,8 @@ import streamlit as st
 from pymongo import MongoClient
 from db import get_next_advice, remaining_tags, submit_tag
 
-DATABASE="sacoder"
+DATABASE="dataset"
+COLLECTION="advices"
 
 
 @st.cache_resource
@@ -24,11 +25,8 @@ def get_collection():
     """Resolve the configured MongoDB collection."""
     if mongo is None:
         return None
-
     try:
-        database_name = st.secrets["mongo"].get("database", "dataset")
-        collection_name = st.secrets["mongo"].get("collection", "advices")
-        return mongo[database_name][collection_name]
+        return mongo[DATABASE][COLLECTION]
     except Exception as e:
         st.error(f"Failed to access MongoDB collection: {e}")
         return None
