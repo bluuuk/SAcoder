@@ -99,7 +99,7 @@ def handle_answer(ans_bool):
 
 def login():
     st.info("Welcome! Please select your username to continue.")
-    username = st.selectbox("Username", options=["Lukas", "Steffen"])
+    username = st.selectbox("Username", options=["C0", "C1"])
     if st.button("Start Coding", type="primary"):
         st.session_state.username = username
         clear_decision_path()
