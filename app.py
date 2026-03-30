@@ -159,7 +159,7 @@ else:
 
         # Display the help text ABOVE the question
         st.subheader(f"{step.label}: {question_text}")
-        st.markdown(f"**💡Questions description**\n\n*{help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow")
+        st.markdown(f"**💡Questions description**\n\n*{help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow. By saving a document with `enter` later, you will write it to the database and WON'T see it again!")
 
         col1, col2, col3 = st.columns(3)
 
