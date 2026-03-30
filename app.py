@@ -24,6 +24,8 @@ st.set_page_config(page_title="SAcoding Tool", layout="centered")
 st.title("🔐 Security Advice Coding")
 
 # ---- STATE ---- #
+if "username" not in st.session_state:
+    st.session_state.username = None
 if "path" not in st.session_state:
     st.session_state.path = [SAcoding]
 if "answers" not in st.session_state:
@@ -50,6 +52,16 @@ def handle_answer(ans_bool):
         st.session_state.path.append(last.yes)
     else:
         st.session_state.path.append(last.no)
+
+def login():
+    st.info("Welcome! Please enter your username to continue.")
+    username = st.text_input("Username", placeholder="e.g. jdoe")
+    if st.button("Start Coding", type="primary"):
+        if username.strip():
+            st.session_state.username = username.strip()
+            st.rerun()
+        else:
+            st.warning("Please enter a username before starting.")
 
 # ---- DATA ---- #
 
@@ -116,42 +128,51 @@ labels = {
 
 # ---- UI RENDERING ---- #
 
-step = st.session_state.path[-1]
-
-if not step.is_leaf():
-    # Split the list into question text and help text
-    question_text = questions[step.label][0]
-    help_text = questions[step.label][1]
-
-    # Display the help text ABOVE the question
-    st.markdown(f"**💡Questions description**\n\n*{help_text}*")
-    st.subheader(f"{step.label}: {question_text}")
-    st.markdown(f"**Possible advice**\n\n*{help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.button("⬅️ No ", shortcut="left",on_click=handle_answer, args=(False,))
-    with col2:
-        st.button("⬆️ Back ⬆️", shortcut="up",on_click=go_back)
-    with col3:
-        st.button("Yes ➡️ ",shortcut="right",on_click=handle_answer, args=(True,))
-
+if st.session_state.username is None:
+    login()
 else:
-    # Safely get the label, default to "Unknown" if missing from dict
-    classification = labels.get(step.label, "Unknown Classification")
-    st.success(f"➡️ Classified as: **{step.label}** ({classification})")
-    
-    col_res1, col_res2 = st.columns(2)
-    with col_res1:
-        if st.button("💾 Save Result"):
-            st.toast("Logic for saving would trigger here!", icon="💾")
-    with col_res2:
-        if st.button("🔄 Reset"):
-            reset_tool()
+    st.sidebar.write(f"Logged in as: **{st.session_state.username}**")
+    if st.sidebar.button("Logout"):
+        st.session_state.username = None
+        reset_tool()
+        st.rerun()
 
-    st.markdown("### 🧭 Decision Path")
-    # Corrected loop to safely map over the path and the recorded answers
-    for i, node in enumerate(st.session_state.path[:-1]):
-        ans = st.session_state.answers[i]
-        st.write(f"**{node.label}:** {ans}")
+    step = st.session_state.path[-1]
+
+    if not step.is_leaf():
+        # Split the list into question text and help text
+        question_text = questions[step.label][0]
+        help_text = questions[step.label][1]
+
+        # Display the help text ABOVE the question
+        st.markdown(f"**💡Questions description**\n\n*{help_text}*")
+        st.subheader(f"{step.label}: {question_text}")
+        st.markdown(f"**Possible advice**\n\n*{help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow")
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.button("⬅️ No ", shortcut="left",on_click=handle_answer, args=(False,))
+        with col2:
+            st.button("⬆️ Back ⬆️", shortcut="up",on_click=go_back)
+        with col3:
+            st.button("Yes ➡️ ",shortcut="right",on_click=handle_answer, args=(True,))
+
+    else:
+        # Safely get the label, default to "Unknown" if missing from dict
+        classification = labels.get(step.label, "Unknown Classification")
+        st.success(f"➡️ Classified as: **{step.label}** ({classification})")
+        
+        col_res1, col_res2 = st.columns(2)
+        with col_res1:
+            if st.button("💾 Save Result"):
+                st.toast("Logic for saving would trigger here!", icon="💾")
+        with col_res2:
+            if st.button("🔄 Reset"):
+                reset_tool()
+
+        st.markdown("### 🧭 Decision Path")
+        # Corrected loop to safely map over the path and the recorded answers
+        for i, node in enumerate(st.session_state.path[:-1]):
+            ans = st.session_state.answers[i]
+            st.write(f"**{node.label}:** {ans}")
