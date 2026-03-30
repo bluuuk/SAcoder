@@ -164,11 +164,10 @@ else:
         
         col_res1, col_res2 = st.columns(2)
         with col_res1:
-            if st.button("💾 Save Result"):
+            if st.button("💾 Save Result",shortcut="enter"):
                 st.toast("Logic for saving would trigger here!", icon="💾")
         with col_res2:
-            if st.button("🔄 Reset"):
-                reset_tool()
+            st.button("🔄 Reset",on_click=reset_tool,shortcut="r")
 
         st.markdown("### 🧭 Decision Path")
         # Corrected loop to safely map over the path and the recorded answers
