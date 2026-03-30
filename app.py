@@ -1,4 +1,18 @@
 import streamlit as st
+from pymongo import MongoClient
+import datetime
+
+@st.cache_resource
+def init_connection():
+    """Initialize connection to MongoDB using st.secrets."""
+    try:
+        # Expected format in .streamlit/secrets.toml:
+        # [mongo]
+        # uri = "mongodb+srv://..."
+        return MongoClient(st.secrets["mongo"]["uri"])
+    except Exception as e:
+        st.error(f"Failed to connect to MongoDB: {e}")
+        return None
 
 class Tree:
     def __init__(self,label : str, yes = None, no = None):
@@ -54,14 +68,11 @@ def handle_answer(ans_bool):
         st.session_state.path.append(last.no)
 
 def login():
-    st.info("Welcome! Please enter your username to continue.")
-    username = st.text_input("Username", placeholder="e.g. jdoe")
+    st.info("Welcome! Please select your username to continue.")
+    username = st.selectbox("Username", options=["Lukas", "Steffen"])
     if st.button("Start Coding", type="primary"):
-        if username.strip():
-            st.session_state.username = username.strip()
-            st.rerun()
-        else:
-            st.warning("Please enter a username before starting.")
+        st.session_state.username = username
+        st.rerun()
 
 # ---- DATA ---- #
 
