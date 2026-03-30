@@ -1,7 +1,4 @@
-from pymongo import MongoClient
-import datetime
-
-def get_next_advice(collection,user_id):
+def get_next_advice(collection, user_id):
     return collection.find_one({
         "codes": {
             "$elemMatch": {
@@ -26,12 +23,12 @@ def submit_tag(collection,advice_id, user_id, tag_value):
     )
     return result.modified_count == 1
 
-def remaining_tags(collection,user_id):
+def remaining_tags(collection, user_id):
     return collection.count_documents({
-        "assignments": {
+        "codes": {
             "$elemMatch": {
                 "userId": user_id,
                 "tag": None
             }
         }
-        })
+    })

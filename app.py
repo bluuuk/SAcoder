@@ -1,6 +1,6 @@
 import streamlit as st
 from pymongo import MongoClient
-import datetime
+from db import get_next_advice, remaining_tags, submit_tag
 
 @st.cache_resource
 def init_connection():
@@ -15,6 +15,22 @@ def init_connection():
         return None
 
 mongo = init_connection()
+
+@st.cache_resource
+def get_collection():
+    """Resolve the configured MongoDB collection."""
+    if mongo is None:
+        return None
+
+    try:
+        database_name = st.secrets["mongo"].get("database", "sacoder")
+        collection_name = st.secrets["mongo"].get("collection", "advices")
+        return mongo[database_name][collection_name]
+    except Exception as e:
+        st.error(f"Failed to access MongoDB collection: {e}")
+        return None
+
+collection = get_collection()
 
 class Tree:
     def __init__(self,label : str, yes = None, no = None):
@@ -46,8 +62,21 @@ if "path" not in st.session_state:
     st.session_state.path = [SAcoding]
 if "answers" not in st.session_state:
     st.session_state.answers = [] # Added to track Yes/No history properly
+if "current_advice" not in st.session_state:
+    st.session_state.current_advice = None
 
 # ---- LOGIC ---- #
+
+
+def clear_decision_path():
+    st.session_state.path = [SAcoding]
+    st.session_state.answers = []
+
+def load_next_advice():
+    if collection is None or st.session_state.username is None:
+        st.session_state.current_advice = None
+        return
+    st.session_state.current_advice = get_next_advice(collection, st.session_state.username)
 
 def go_back():
     if len(st.session_state.path) > 1:
@@ -57,8 +86,7 @@ def go_back():
     st.rerun()
 
 def reset_tool():
-    st.session_state.path = [SAcoding]
-    st.session_state.answers = []
+    clear_decision_path()
     st.rerun()
 
 def handle_answer(ans_bool):
@@ -74,7 +102,44 @@ def login():
     username = st.selectbox("Username", options=["Lukas", "Steffen"])
     if st.button("Start Coding", type="primary"):
         st.session_state.username = username
+        clear_decision_path()
+        load_next_advice()
         st.rerun()
+
+
+def get_advice_text(advice_doc):
+    if not advice_doc:
+        return None
+
+    for key in ("advice", "text", "content", "body", "sentence"):
+        value = advice_doc.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+def save_result():
+    advice_doc = st.session_state.current_advice
+    if advice_doc is None or collection is None:
+        st.error("No advice item is loaded.")
+        return
+
+    classification = st.session_state.path[-1].label
+    saved = submit_tag(
+        collection,
+        advice_doc["_id"],
+        st.session_state.username,
+        classification,
+    )
+
+    if not saved:
+        st.error("Saving failed. The item may already be tagged or unavailable.")
+        return
+
+    st.toast(f"Saved classification {classification}", icon="💾")
+    clear_decision_path()
+    load_next_advice()
+    st.rerun()
 
 # ---- DATA ---- #
 
@@ -132,10 +197,10 @@ labels = {
     "T'": "Outcome",
     "P1": "Incompletely Specified Practice",
     "P2": "General Policy/Approach",
-    "*P3": "Infeasible Practice",
-    "*P4": "Security Expert",
-    "*P5": "IT Specialist",
-    "*P6": "End-User",
+    "P3": "Infeasible Practice",
+    "P4": "Security Expert",
+    "P5": "IT Specialist",
+    "P6": "End-User",
     "N": "Security Principle",
 }
 
@@ -144,46 +209,64 @@ labels = {
 if st.session_state.username is None:
     login()
 else:
-    st.sidebar.write(f"Logged in as: **{st.session_state.username}**")
+    if st.session_state.current_advice is None:
+        load_next_advice()
+
+    st.sidebar.write(
+        f"Logged in as: **{st.session_state.username}**"
+    )
+    if collection is not None and st.session_state.username is not None:
+        st.sidebar.write(
+            f"Remaining items: **{remaining_tags(collection, st.session_state.username)}**"
+        )
     if st.sidebar.button("Logout"):
         st.session_state.username = None
+        st.session_state.current_advice = None
         reset_tool()
         st.rerun()
 
-    step = st.session_state.path[-1]
-
-    if not step.is_leaf():
-        # Split the list into question text and help text
-        question_text = questions[step.label][0]
-        help_text = questions[step.label][1]
-
-        # Display the help text ABOVE the question
-        st.subheader(f"{step.label}: {question_text}")
-        st.markdown(f"**💡Questions description**\n\n*{help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow. By saving a document with `enter` later, you will write it to the database and WON'T see it again!")
-
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            st.button("No", shortcut="left",on_click=handle_answer, args=(False,))
-        with col2:
-            st.button("Back", shortcut="up",on_click=go_back)
-        with col3:
-            st.button("Yes ",shortcut="right",on_click=handle_answer, args=(True,))
-
+    advice_text = get_advice_text(st.session_state.current_advice)
+    if st.session_state.current_advice is None:
+        st.success("No uncoded advice items remain for your alias.")
     else:
-        # Safely get the label, default to "Unknown" if missing from dict
-        classification = labels.get(step.label, "Unknown Classification")
-        st.success(f"➡️ Classified as: **{step.label}** ({classification})")
-        st.markdown("### 🧭 Decision Path")
-        # Corrected loop to safely map over the path and the recorded answers
-        for i, node in enumerate(st.session_state.path[:-1]):
-            ans = st.session_state.answers[i]
-            st.write(f"**{node.label}:** {ans}")
-        
-        col_res1, col_res2 = st.columns(2)
-        with col_res1:
-            if st.button("💾 Save Result",shortcut="enter"):
-                st.toast("Logic for saving would trigger here!", icon="💾")
-        with col_res2:
-            st.button("🔄 Reset",on_click=reset_tool)
+        st.markdown("### Advice Item")
+        if advice_text:
+            st.info(advice_text)
+        else:
+            st.warning("Loaded item, but no advice text field was found.")
 
+        step = st.session_state.path[-1]
+
+        if not step.is_leaf():
+            # Split the list into question text and help text
+            question_text = questions[step.label][0]
+            help_text = questions[step.label][1]
+
+            # Display the help text ABOVE the question
+            st.subheader(f"{step.label}: {question_text}")
+            st.markdown(f"**💡Questions description**\n\n*{help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow. By saving a document with `enter` later, you will write it to the database and WON'T see it again!")
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.button("No", shortcut="left",on_click=handle_answer, args=(False,))
+            with col2:
+                st.button("Back", shortcut="up",on_click=go_back)
+            with col3:
+                st.button("Yes ",shortcut="right",on_click=handle_answer, args=(True,))
+
+        else:
+            # Safely get the label, default to "Unknown" if missing from dict
+            classification = labels.get(step.label, "Unknown Classification")
+            st.success(f"➡️ Classified as: **{step.label}** ({classification})")
+            st.markdown("### 🧭 Decision Path")
+            # Corrected loop to safely map over the path and the recorded answers
+            for i, node in enumerate(st.session_state.path[:-1]):
+                ans = st.session_state.answers[i]
+                st.write(f"**{node.label}:** {ans}")
+
+            col_res1, col_res2 = st.columns(2)
+            with col_res1:
+                st.button("💾 Save Result", shortcut="enter", on_click=save_result)
+            with col_res2:
+                st.button("🔄 Reset",on_click=reset_tool)
