@@ -1,6 +1,6 @@
 import streamlit as st
 from pymongo import MongoClient
-from db import get_next_advice, remaining_tags, submit_tag
+import db
 
 DATABASE="dataset"
 COLLECTION="advices"
@@ -77,7 +77,7 @@ def load_next_advice():
     if collection is None or st.session_state.username is None:
         st.session_state.current_advice = None
         return
-    st.session_state.current_advice = get_next_advice(collection, st.session_state.username)
+    st.session_state.current_advice = db.get_next_advice(collection, st.session_state.username)
 
 def go_back():
     if len(st.session_state.path) > 1:
@@ -126,7 +126,7 @@ def save_result():
         return
 
     classification = st.session_state.path[-1].label
-    saved = submit_tag(
+    saved = db.submit_tag(
         collection,
         advice_doc["_id"],
         st.session_state.username,
@@ -218,7 +218,7 @@ else:
     )
     if collection is not None and st.session_state.username is not None:
         st.sidebar.write(
-            f"Remaining items: **{remaining_tags(collection, st.session_state.username)}**"
+            f"Remaining items: **{db.remaining_tags(collection, st.session_state.username)}**"
         )
     if st.sidebar.button("Logout"):
         st.session_state.username = None
@@ -226,15 +226,15 @@ else:
         reset_tool()
         st.rerun()
 
-    advice_text = get_advice_text(st.session_state.current_advice)
     if st.session_state.current_advice is None:
         st.success("No uncoded advice items remain for your alias.")
     else:
         st.markdown("### Advice Item")
+        advice_text = st.session_state.current_advice.advice
         if advice_text:
             st.info(advice_text)
         else:
-            st.warning("Loaded item, but no advice text field was found.")
+            st.error("Loaded item, but no advice text field was found.")
 
         step = st.session_state.path[-1]
 
