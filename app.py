@@ -130,14 +130,11 @@ if not step.is_leaf():
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.button("⬅️ Yes", on_click=handle_answer, args=(True))
-
+        st.button("⬅️ Yes", on_click=handle_answer, args=(True,))
     with col2:
-        st.button("No ➡️", on_click=handle_answer, args=(False))
-        if st.button(""):
-            handle_answer(False, "No")
+        st.button("No ➡️", on_click=handle_answer, args=(False,))
     with col3:
-        st.button("⬆️ Back", on_click=go_back, )
+        st.button("⬆️ Back", on_click=go_back)
 
 else:
     # Safely get the label, default to "Unknown" if missing from dict
