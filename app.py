@@ -42,7 +42,7 @@ Q9  = Tree(label="Q9",      yes=Tree("P2"), no=Q10)
 Q4  = Tree(label="Q4",      yes=Q5,         no=Q9)  
 Q3  = Tree(label="Q3",      yes=Tree("T"),  no=Q4)  
 Q2  = Tree(label="Q2",      no=Tree("M2"),  yes=Q3)  
-Q0  = Tree(label="Q1",      no=Tree("M1"),  yes=Q2)  
+Q1  = Tree(label="Q1",      no=Tree("M1"),  yes=Q2)  
 
 st.set_page_config(page_title="SAcoding Tool", layout="centered")
 st.title("🔐 Security Advice Coding")
@@ -56,7 +56,7 @@ st.title("🔐 Security Advice Coding")
 if "username" not in st.session_state:
     st.session_state.username = None
 if "path" not in st.session_state:
-    st.session_state.path = [(Q0,None)]
+    st.session_state.path = []
 if "current_advice" not in st.session_state:
     st.session_state.current_advice = None
 
@@ -67,7 +67,7 @@ def reset_tool():
     st.rerun()
 
 def clear_decision_path():
-    st.session_state.path = [(Q0,None)]
+    st.session_state.path = []
 
 def load_next_advice():
     if collection is None or st.session_state.username is None:
@@ -78,16 +78,13 @@ def load_next_advice():
 def go_back():
     if len(st.session_state.path) > 1:
         st.session_state.path.pop()
-        if st.session_state.answers:
-            st.session_state.answers.pop()
     st.rerun()
 
 def handle_answer(ans : bool):
-    last,_ = st.session_state.path[-1]
-    if ans:
-        st.session_state.path.append((last.yes,"Yes"))
-    else:
-        st.session_state.path.append((last.no,"No"))
+    current_node, _ = st.session_state.path[-1]
+    next_node = current_node.yes if ans else current_node.no
+    answer_label = "Yes" if ans else "No"
+    st.session_state.path.append((next_node, answer_label))
 
 def login():
     st.info("Welcome! Please select your username to continue.")
@@ -103,7 +100,8 @@ def save_result():
         st.error("No advice item is loaded.")
         return
 
-    tag,_ = st.session_state.path[-1]
+    tag, _ = st.session_state.path[-1]
+    classification = labels.get(tag.label, "Unknown Classification")
     saved = db.submit_tag(
         collection,
         advice_doc["_id"],
@@ -213,7 +211,10 @@ else:
         else:
             st.error("Loaded item, but no advice text field was found.")
 
-        step,_ = st.session_state.path[-1]
+        if not st.session_state.path:
+            step = Q1
+        else:
+            step,_ = st.session_state.path[-1]
 
         if not step.is_leaf():
             # Split the list into question text and help text

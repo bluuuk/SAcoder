@@ -1,0 +1,82 @@
+[
+{
+    "_id": 1,
+    "advice": "Use a password manager to generate and store unique passwords for each account.",
+    "codes": [
+        {"userId": "C0", "tag": null},
+        {"userId": "C1", "tag": null}
+    ]
+},
+{
+    "_id": 2,
+    "advice": "Enable two-factor authentication on all important accounts.",
+    "codes": [
+        {"userId": "C0", "tag": null},
+        {"userId": "C1", "tag": null}
+    ]
+},
+{
+    "_id": 3,
+    "advice": "Protect user data from unauthorized access.",
+    "codes": [
+        {"userId": "C0", "tag": null},
+        {"userId": "C1", "tag": null}
+    ]
+},
+{
+    "_id": 4,
+    "advice": "Configure account lockout after five failed login attempts.",
+    "codes": [
+        {"userId": "C0", "tag": null},
+        {"userId": "C1", "tag": null}
+    ]
+},
+{
+    "_id": 5,
+    "advice": "Set passwords to expire every 90 days and require users to create a new one.",
+    "codes": [
+        {"userId": "C0", "tag": null},
+        {"userId": "C1", "tag": null}
+    ]
+},
+{
+    "_id": 6,
+    "advice": "Implement security controls using existing authentication libraries.",
+    "codes": [
+        {"userId": "C0", "tag": null},
+        {"userId": "C1", "tag": null}
+    ]
+},
+{
+    "_id": 7,
+    "advice": "Encrypt sensitive data before storing it in the database.",
+    "codes": [
+        {"userId": "C0", "tag": null},
+        {"userId": "C1", "tag": null}
+    ]
+},
+{
+    "_id": 8,
+    "advice": "Restrict access to sensitive resources based on user roles.",
+    "codes": [
+        {"userId": "C0", "tag": null},
+        {"userId": "C1", "tag": null}
+    ]
+},
+{
+    "_id": 9,
+    "advice": "Users must follow a policy requiring strong passwords.",
+    "codes": [
+        {"userId": "C0", "tag": null},
+        {"userId": "C1", "tag": null}
+    ]
+},
+{
+    "_id": 10,
+    "advice": "Apply the principle of least privilege to limit access rights.",
+    "codes": [
+        {"userId": "C0", "tag": null},
+        {"userId": "C1", "tag": null}
+    ]
+}
+]

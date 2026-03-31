@@ -12,8 +12,12 @@ def submit_tag(collection,advice_id, user_id, tag_value):
     result = collection.update_one(
         {
             "_id": advice_id,
-            "codes.userId": user_id,
-            "codes.tag": None  # prevents overwrite
+            "codes": {
+                "$elemMatch": {
+                    "userId": user_id,
+                    "tag": None
+                }
+            }
         },
         {
             "$set": {
