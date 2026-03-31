@@ -2,6 +2,10 @@ import streamlit as st
 from pymongo import MongoClient
 import db
 
+if not st.secrets.get("mongo"):
+    st.error("Missing `mongo` configuration in Streamlit secrets. Add a `[mongo]` section before running the app.")
+    st.stop()
+      
 DATABASE=st.secrets["mongo"].get("database","dataset")
 COLLECTION=st.secrets["mongo"].get("collection","advices")
 
@@ -61,7 +65,6 @@ if "path" not in st.session_state:
 if "current_advice" not in st.session_state:
     st.session_state.current_advice = None
 
-
 def reset(do_rerun : bool = True):
     st.session_state.current = Q1
     st.session_state.path = []
@@ -100,7 +103,6 @@ def save_result():
         return
 
     tag = st.session_state.current
-    classification = labels.get(tag.label, "Unknown Classification")
     saved = db.submit_tag(
         collection,
         advice_doc["_id"],
@@ -112,7 +114,7 @@ def save_result():
         st.error("Saving failed. The item may already be tagged or unavailable.")
         return
 
-    st.toast(f"Saved classification {classification}", icon="💾")
+    st.toast(f"Saved classification {labels[tag.label]}", icon="💾")
     load_next_advice()
     reset(False)
     
