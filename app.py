@@ -2,9 +2,8 @@ import streamlit as st
 from pymongo import MongoClient
 import db
 
-DATABASE="dataset"
-COLLECTION="advices"
-
+DATABASE=st.secrets["mongo"].get("database","dataset")
+COLLECTION=st.secrets["mongo"].get("collection","advices")
 
 @st.cache_resource
 def init_connection():
