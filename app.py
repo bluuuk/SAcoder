@@ -49,25 +49,25 @@ st.title("🔐 Security Advice Coding")
 
 """
     username        for login
-    path            for question path and state keeping
+    current         maintain current step
+    path            for question path
     current_advice  current advice item pulled from the database  
 """
 
 if "username" not in st.session_state:
     st.session_state.username = None
+if "current" not in st.session_state:
+    st.session_state.current = Q1
 if "path" not in st.session_state:
     st.session_state.path = []
 if "current_advice" not in st.session_state:
     st.session_state.current_advice = None
 
-# ---- LOGIC ---- #
 
-def reset_tool():
-    clear_decision_path()
-    st.rerun()
-
-def clear_decision_path():
+def reset():
+    st.session_state.current = Q1
     st.session_state.path = []
+    st.rerun()
 
 def load_next_advice():
     if collection is None or st.session_state.username is None:
@@ -76,23 +76,24 @@ def load_next_advice():
     st.session_state.current_advice = db.get_next_advice(collection, st.session_state.username)
 
 def go_back():
-    if len(st.session_state.path) > 1:
-        st.session_state.path.pop()
+    if st.session_state.path:
+        previous_node, _ = st.session_state.path.pop()
+        st.session_state.current = previous_node
     st.rerun()
 
 def handle_answer(ans : bool):
-    current_node, _ = st.session_state.path[-1]
+    current_node = st.session_state.current
     next_node = current_node.yes if ans else current_node.no
     answer_label = "Yes" if ans else "No"
-    st.session_state.path.append((next_node, answer_label))
+    st.session_state.path.append((current_node, answer_label))
+    st.session_state.current = next_node
 
 def login():
     st.info("Welcome! Please select your username to continue.")
     username = st.selectbox("Username", options=["C0", "C1"])
     if st.button("Start Coding", type="primary"):
         st.session_state.username = username
-        clear_decision_path()
-        st.rerun()
+        reset()
 
 def save_result():
     advice_doc = st.session_state.current_advice
@@ -100,7 +101,7 @@ def save_result():
         st.error("No advice item is loaded.")
         return
 
-    tag, _ = st.session_state.path[-1]
+    tag = st.session_state.current
     classification = labels.get(tag.label, "Unknown Classification")
     saved = db.submit_tag(
         collection,
@@ -114,9 +115,9 @@ def save_result():
         return
 
     st.toast(f"Saved classification {classification}", icon="💾")
-    clear_decision_path()
     load_next_advice()
-    st.rerun()
+    reset()
+    
 
 # ---- DATA ---- #
 
@@ -199,22 +200,19 @@ else:
     if st.sidebar.button("Logout"):
         st.session_state.username = None
         st.session_state.current_advice = None
-        reset_tool()
+        reset()
 
     if st.session_state.current_advice is None:
-        st.success("No uncoded advice items remain for your alias.")
+        st.success("No remaining advice items :)")
     else:
-        st.markdown("### Advice Item")
+        st.markdown("## Advice Item")
         advice_text = st.session_state.current_advice
         if advice_text:
             st.info(advice_text["advice"])
         else:
             st.error("Loaded item, but no advice text field was found.")
 
-        if not st.session_state.path:
-            step = Q1
-        else:
-            step,_ = st.session_state.path[-1]
+        step = st.session_state.current
 
         if not step.is_leaf():
             # Split the list into question text and help text
@@ -241,11 +239,11 @@ else:
             st.markdown("### 🧭 Decision Path")
             
             # Corrected loop to safely map over the path and the recorded answers
-            for i, (node,answer) in enumerate(st.session_state.path[:-1]):
+            for i, (node,answer) in enumerate(st.session_state.path):
                 st.write(f"**{questions[node.label][0]}** -> {answer}")
 
             col_res1, col_res2 = st.columns(2)
             with col_res1:
                 st.button("💾 Save Result", shortcut="enter", on_click=save_result)
             with col_res2:
-                st.button("🔄 Reset",on_click=reset_tool)
+                st.button("🔄 Reset",on_click=reset)
