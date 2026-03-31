@@ -83,7 +83,7 @@ def go_back():
     st.rerun()
 
 def handle_answer(ans : bool):
-    last = st.session_state.path[-1]
+    last,_ = st.session_state.path[-1]
     if ans:
         st.session_state.path.append((last.yes,"Yes"))
     else:
