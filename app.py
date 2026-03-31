@@ -78,7 +78,6 @@ def go_back():
     if st.session_state.path:
         previous_node, _ = st.session_state.path.pop()
         st.session_state.current = previous_node
-    st.rerun()
 
 def handle_answer(ans : bool):
     current_node = st.session_state.current
