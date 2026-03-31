@@ -47,12 +47,10 @@ Q1  = Tree(label="Q1",      no=Tree("M1"),  yes=Q2)
 st.set_page_config(page_title="SAcoding Tool", layout="centered")
 st.title("🔐 Security Advice Coding")
 
-"""
-    username        for login
-    current         maintain current step
-    path            for question path
-    current_advice  current advice item pulled from the database  
-"""
+# username        for login
+# current         maintain current step
+# path            for question path
+# current_advice  current advice item pulled from the database  
 
 if "username" not in st.session_state:
     st.session_state.username = None
@@ -240,7 +238,7 @@ else:
             
             # Corrected loop to safely map over the path and the recorded answers
             for i, (node,answer) in enumerate(st.session_state.path):
-                st.write(f"**{questions[node.label][0]}** -> {answer}")
+                st.write(f"{questions[node.label][0]} -> **{answer}**")
 
             col_res1, col_res2 = st.columns(2)
             with col_res1:
