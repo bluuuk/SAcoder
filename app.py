@@ -242,7 +242,7 @@ else:
             
             # Corrected loop to safely map over the path and the recorded answers
             for i, (node,answer) in enumerate(st.session_state.path[:-1]):
-                st.write(f"**{questions[node.label][0]}:** {answer}")
+                st.write(f"**{questions[node.label][0]}** -> {answer}")
 
             col_res1, col_res2 = st.columns(2)
             with col_res1:
