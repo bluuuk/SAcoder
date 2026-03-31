@@ -6,26 +6,14 @@ DATABASE=st.secrets["mongo"].get("database","dataset")
 COLLECTION=st.secrets["mongo"].get("collection","advices")
 
 @st.cache_resource
-def init_connection():
-    """Initialize connection to MongoDB using st.secrets."""
+def get_collection():
     try:
-        # Expected format in .streamlit/secrets.toml:
-        # [mongo]
-        # uri = "mongodb+srv://..."
-        return MongoClient(st.secrets["mongo"]["uri"])
+        client = MongoClient(st.secrets["mongo"]["uri"])
     except Exception as e:
         st.error(f"Failed to connect to MongoDB: {e}")
         return None
-
-mongo = init_connection()
-
-@st.cache_resource
-def get_collection():
-    """Resolve the configured MongoDB collection."""
-    if mongo is None:
-        return None
     try:
-        return mongo[DATABASE][COLLECTION]
+        return client[DATABASE][COLLECTION]
     except Exception as e:
         st.error(f"Failed to access MongoDB collection: {e}")
         return None
@@ -66,7 +54,6 @@ if "current_advice" not in st.session_state:
     st.session_state.current_advice = None
 
 # ---- LOGIC ---- #
-
 
 def clear_decision_path():
     st.session_state.path = [SAcoding]
