@@ -62,10 +62,11 @@ if "current_advice" not in st.session_state:
     st.session_state.current_advice = None
 
 
-def reset():
+def reset(do_rerun : bool = True):
     st.session_state.current = Q1
     st.session_state.path = []
-    st.rerun()
+    if do_rerun:
+        st.rerun()
 
 def load_next_advice():
     if collection is None or st.session_state.username is None:
@@ -114,7 +115,7 @@ def save_result():
 
     st.toast(f"Saved classification {classification}", icon="💾")
     load_next_advice()
-    reset()
+    reset(False)
     
 
 # ---- DATA ---- #
@@ -244,4 +245,4 @@ else:
             with col_res1:
                 st.button("💾 Save Result", shortcut="enter", on_click=save_result)
             with col_res2:
-                st.button("🔄 Reset",on_click=reset)
+                st.button("🔄 Reset",on_click=reset,args=(False,))
