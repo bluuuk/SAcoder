@@ -20,6 +20,10 @@ def get_collection():
 
 collection = get_collection()
 
+"""
+Coding tree according to <https://academic.oup.com/cybersecurity/article/9/1/tyad013/7217003> 
+"""
+
 class Tree:
     def __init__(self,label : str, yes = None, no = None):
         self.label = label
@@ -29,35 +33,41 @@ class Tree:
     def is_leaf(self) -> bool:
         return self.yes is None and self.no is None
 
-Q8 = Tree(label="Q8",       no=Tree("P5"), yes=Tree("P4"))    
-Q7 = Tree(label="Q7",       yes=Tree("P6"), no=Q8)    
-Q6 = Tree(label="Q6",       no=Tree("P3"), yes=Q7)   
-Q5 = Tree(label="Q5",       no=Tree("P1"), yes=Q6)  
-Q10 = Tree(label="Q10",     yes=Tree("N"), no=Tree("T'"))  
-Q9 = Tree(label="Q9",       yes=Tree("P2"), no=Q10)  
-Q4 = Tree(label="Q4",       yes=Q5, no=Q9)  
-Q3 = Tree(label="Q3",       yes=Tree("T"), no=Q4)  
-Q2 = Tree(label="Q2",       no=Tree("M2"), yes=Q3)  
-SAcoding = Tree(label="Q1", no=Tree("M1"), yes=Q2)  
+Q8  = Tree(label="Q8",      no=Tree("P5"),  yes=Tree("P4"))    
+Q7  = Tree(label="Q7",      yes=Tree("P6"), no=Q8)    
+Q6  = Tree(label="Q6",      no=Tree("P3"),  yes=Q7)   
+Q5  = Tree(label="Q5",      no=Tree("P1"),  yes=Q6)  
+Q10 = Tree(label="Q10",     yes=Tree("N"),  no=Tree("T'"))  
+Q9  = Tree(label="Q9",      yes=Tree("P2"), no=Q10)  
+Q4  = Tree(label="Q4",      yes=Q5,         no=Q9)  
+Q3  = Tree(label="Q3",      yes=Tree("T"),  no=Q4)  
+Q2  = Tree(label="Q2",      no=Tree("M2"),  yes=Q3)  
+Q0  = Tree(label="Q1",      no=Tree("M1"),  yes=Q2)  
 
 st.set_page_config(page_title="SAcoding Tool", layout="centered")
 st.title("🔐 Security Advice Coding")
 
-# ---- STATE ---- #
+"""
+    username        for login
+    path            for question path and state keeping
+    current_advice  current advice item pulled from the database  
+"""
+
 if "username" not in st.session_state:
     st.session_state.username = None
 if "path" not in st.session_state:
-    st.session_state.path = [SAcoding]
-if "answers" not in st.session_state:
-    st.session_state.answers = [] # Added to track Yes/No history properly
+    st.session_state.path = [(Q0,None)]
 if "current_advice" not in st.session_state:
     st.session_state.current_advice = None
 
 # ---- LOGIC ---- #
 
+def reset_tool():
+    clear_decision_path()
+    st.rerun()
+
 def clear_decision_path():
-    st.session_state.path = [SAcoding]
-    st.session_state.answers = []
+    st.session_state.path = [(Q0,None)]
 
 def load_next_advice():
     if collection is None or st.session_state.username is None:
@@ -72,17 +82,12 @@ def go_back():
             st.session_state.answers.pop()
     st.rerun()
 
-def reset_tool():
-    clear_decision_path()
-    st.rerun()
-
-def handle_answer(ans_bool):
+def handle_answer(ans : bool):
     last = st.session_state.path[-1]
-    st.session_state.answers.append("Yes" if ans_bool else "No") # Track the text of the answer
-    if ans_bool:
-        st.session_state.path.append(last.yes)
+    if ans:
+        st.session_state.path.append((last.yes,"Yes"))
     else:
-        st.session_state.path.append(last.no)
+        st.session_state.path.append((last.no,"No"))
 
 def login():
     st.info("Welcome! Please select your username to continue.")
@@ -90,20 +95,7 @@ def login():
     if st.button("Start Coding", type="primary"):
         st.session_state.username = username
         clear_decision_path()
-        load_next_advice()
         st.rerun()
-
-
-def get_advice_text(advice_doc):
-    if not advice_doc:
-        return None
-
-    for key in ("advice", "text", "content", "body", "sentence"):
-        value = advice_doc.get(key)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
-    return None
-
 
 def save_result():
     advice_doc = st.session_state.current_advice
@@ -111,12 +103,12 @@ def save_result():
         st.error("No advice item is loaded.")
         return
 
-    classification = st.session_state.path[-1].label
+    tag,_ = st.session_state.path[-1]
     saved = db.submit_tag(
         collection,
         advice_doc["_id"],
         st.session_state.username,
-        classification,
+        tag.label,
     )
 
     if not saved:
@@ -210,7 +202,6 @@ else:
         st.session_state.username = None
         st.session_state.current_advice = None
         reset_tool()
-        st.rerun()
 
     if st.session_state.current_advice is None:
         st.success("No uncoded advice items remain for your alias.")
@@ -222,7 +213,7 @@ else:
         else:
             st.error("Loaded item, but no advice text field was found.")
 
-        step = st.session_state.path[-1]
+        step,_ = st.session_state.path[-1]
 
         if not step.is_leaf():
             # Split the list into question text and help text
@@ -231,7 +222,7 @@ else:
 
             # Display the help text ABOVE the question
             st.subheader(f"{step.label}: {question_text}")
-            st.markdown(f"**💡Questions description**\n\n*{help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow. By saving a document with `enter` later, you will write it to the database and WON'T see it again!")
+            st.markdown(f"**💡Questions description💡**\n\n*{help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow. By saving a document with `enter` later, you will write it to the database and WON'T see it again!")
 
             col1, col2, col3 = st.columns(3)
 
@@ -247,10 +238,10 @@ else:
             classification = labels.get(step.label, "Unknown Classification")
             st.success(f"➡️ Classified as: **{step.label}** ({classification})")
             st.markdown("### 🧭 Decision Path")
+            
             # Corrected loop to safely map over the path and the recorded answers
-            for i, node in enumerate(st.session_state.path[:-1]):
-                ans = st.session_state.answers[i]
-                st.write(f"**{node.label}:** {ans}")
+            for i, (node,answer) in enumerate(st.session_state.path[:-1]):
+                st.write(f"**{questions[node.label][0]}:** {answer}")
 
             col_res1, col_res2 = st.columns(2)
             with col_res1:
