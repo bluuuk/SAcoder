@@ -66,9 +66,9 @@ def login():
     # Usage
 
     - You will apply the SAcoding methodology to classify *security advice items*.
-    - By answering a series of up to $10$ questions with `yes` or `no`, you will assign a *tag* to each item.
-    - You may select `both` for one question per item if you can justify both a “yes” and “no” answer.
-    - You can go back to the previous question at any time. If you go back after selecting `both`, all answers for the current item will reset.
+    - By answering a series of up to 10 questions with `yes` or `no`, you will assign a *tag* to each item.
+    - You may select `both` for at most one question per item if you can justify both a `yes` and `no` answer. This means at most two tags can be assigned.
+    - You can go back to the previous question at any time. If you go back after selecting `both`, all answers for the current item will be reset.
     - You can use the arrow keys to answer questions more quickly.
     - At the end, press `enter` to save your result. If you misclick or misunderstand an item, you can reset and reclassify it before saving.
     - After saving, the assigned tag(s) cannot be changed.
