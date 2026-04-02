@@ -2,6 +2,7 @@ import streamlit as st
 from pymongo import MongoClient
 import db
 from SAcoding import (
+    CodingAction,
     CodingLabels,
     CodingTree,
 )
@@ -41,12 +42,15 @@ if "current" not in st.session_state:
     st.session_state.current = CodingTree
 if "path" not in st.session_state:
     st.session_state.path = []
+if "both_tag" not in st.session_state:
+    st.session_state.both_tag = None
 if "current_advice" not in st.session_state:
     st.session_state.current_advice = None
 
 def reset(do_rerun : bool = True):
     st.session_state.current = CodingTree
     st.session_state.path = []
+    st.session_state.both_tag = None
     if do_rerun:
         st.rerun()
 
@@ -58,14 +62,18 @@ def load_next_advice():
 
 def go_back():
     if st.session_state.path:
-        previous_node, _ = st.session_state.path.pop()
+        previous_node, action = st.session_state.path.pop()
+        if action == CodingAction.BOTH:
+            st.session_state.both_tag = None
         st.session_state.current = previous_node
 
-def handle_answer(ans : bool):
+def handle_action(action: CodingAction):
     current_node = st.session_state.current
-    answer_label = "Yes" if ans else "No"
-    st.session_state.path.append((current_node, answer_label))
-    st.session_state.current = current_node.next_step(ans)
+    if action == CodingAction.BOTH:
+        both_tag, _ = current_node.both_transition()
+        st.session_state.both_tag = both_tag.label
+    st.session_state.path.append((current_node, action))
+    st.session_state.current = current_node.next_step(action)
 
 def login():
     st.info("Welcome! Please select your username to continue.")
@@ -80,19 +88,26 @@ def save_result():
         st.error("No advice item is loaded.")
         return
 
-    tag = st.session_state.current
+    tag1 = st.session_state.current.label
+    tag2 = st.session_state.both_tag
+
     saved = db.submit_tag(
         collection,
         advice_doc["_id"],
         st.session_state.username,
-        tag.label,
+        tag1,
+        tag2,
     )
 
     if not saved:
         st.error("Saving failed. The item may already be tagged or unavailable.")
         return
 
-    st.toast(f"Saved classification {CodingLabels[tag.label]}", icon="💾")
+    saved_labels = [CodingLabels[tag1]]
+    if tag2 is not None:
+        saved_labels.append(CodingLabels[tag2])
+
+    st.toast(f"Saved classification {' + '.join(saved_labels)}", icon="💾")
     load_next_advice()
     reset(False)
     
@@ -135,21 +150,37 @@ else:
             st.subheader(f"{question.code}: {question.text}")
             st.markdown(f"**💡Questions description💡**\n\n*{question.help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow. By saving a document with `enter` later, you will write it to the database and WON'T see it again!")
 
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3, col4 = st.columns(4)
 
             with col1:
-                st.button("No", shortcut="left",on_click=handle_answer, args=(False,))
+                st.button("No", shortcut="left", on_click=handle_action, args=(CodingAction.NO,))
             with col2:
-                st.button("Back", shortcut="up",on_click=go_back)
+                st.button("Back", shortcut="down", on_click=go_back)
             with col3:
-                st.button("Yes ",shortcut="right",on_click=handle_answer, args=(True,))
+                st.button(
+                    "Both",
+                    shortcut="up",
+                    on_click=handle_action,
+                    args=(CodingAction.BOTH,),
+                    disabled=st.session_state.both_tag is not None or not step.supports_both(),
+                )
+            with col4:
+                st.button("Yes ", shortcut="right", on_click=handle_action, args=(CodingAction.YES,))
 
         else:
             st.success(f"➡️ Classified as: **{step.label}** ({step.classification_label()})")
             st.markdown("### 🧭 Decision Path")
-            
-            for (node,answer) in st.session_state.path:
-                st.write(f"{node.question_text} -> **{answer}**")
+
+            if st.session_state.both_tag is not None:
+                st.markdown(
+                    f"**Tag 1: {st.session_state.both_tag} ({CodingLabels[st.session_state.both_tag]})**"
+                )
+                st.markdown(
+                    f"**Tag 2: {step.label} ({step.classification_label()})**"
+                )
+
+            for node, action in st.session_state.path:
+                st.write(f"{node.question_text} -> **{action.value}**")
 
             col_res1, col_res2 = st.columns(2)
             with col_res1:

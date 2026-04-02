@@ -1,27 +1,20 @@
 def get_next_advice(collection, user_id):
     return collection.find_one({
-        "codes": {
-            "$elemMatch": {
-                "userId": user_id,
-                "tag": None
-            }
-        }
+        f"codes.{user_id}": {"$exists": False}
     })
 
-def submit_tag(collection,advice_id, user_id, tag_value):
+def submit_tag(collection, advice_id, user_id, tag1_value, tag2_value=None):
     result = collection.update_one(
         {
             "_id": advice_id,
-            "codes": {
-                "$elemMatch": {
-                    "userId": user_id,
-                    "tag": None
-                }
-            }
+            f"codes.{user_id}": {"$exists": False}
         },
         {
             "$set": {
-                "codes.$.tag": tag_value
+                f"codes.{user_id}": {
+                    "tag1": tag1_value,
+                    "tag2": tag2_value
+                }
             }
         }
     )
@@ -29,10 +22,5 @@ def submit_tag(collection,advice_id, user_id, tag_value):
 
 def remaining_tags(collection, user_id):
     return collection.count_documents({
-        "codes": {
-            "$elemMatch": {
-                "userId": user_id,
-                "tag": None
-            }
-        }
+        f"codes.{user_id}": {"$exists": False}
     })

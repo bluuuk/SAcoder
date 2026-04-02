@@ -1,4 +1,12 @@
+from enum import Enum
 from dataclasses import dataclass
+
+
+class CodingAction(Enum):
+    NO = "No"
+    BOTH = "Both"
+    YES = "Yes"
+
 
 class CodingNode:
     def __init__(
@@ -18,8 +26,15 @@ class CodingNode:
     def is_leaf(self) -> bool:
         return self.yes is None and self.no is None
 
-    def next_step(self, answer: bool) -> "CodingNode":
-        return self.yes if answer else self.no
+    def next_step(self, action: CodingAction) -> "CodingNode":
+        if action == CodingAction.YES:
+            return self.yes
+        if action == CodingAction.NO:
+            return self.no
+        if action == CodingAction.BOTH:
+            _, continuation_node = self.both_transition()
+            return continuation_node
+        raise ValueError(f"Unsupported action: {action}")
 
     def question(self) -> "QuestionStep | None":
         if self.is_leaf():
@@ -33,6 +48,20 @@ class CodingNode:
 
     def classification_label(self) -> str:
         return CodingLabels.get(self.label, "Unknown Classification")
+
+    def supports_both(self) -> bool:
+        if self.label == "Q4" or self.is_leaf():
+            return False
+        if self.yes is None or self.no is None:
+            return False
+        return self.yes.is_leaf() != self.no.is_leaf()
+
+    def both_transition(self) -> tuple["CodingNode", "CodingNode"]:
+        if not self.supports_both():
+            raise ValueError(f"{self.label} does not support both")
+        if self.yes.is_leaf():
+            return self.yes, self.no
+        return self.no, self.yes
 
 CodingLabels = {
     "M1a": "Unfocused",
