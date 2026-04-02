@@ -148,9 +148,8 @@ else:
             st.success(f"➡️ Classified as: **{step.label}** ({step.classification_label()})")
             st.markdown("### 🧭 Decision Path")
             
-            for path_item in step.decision_path(st.session_state.path):
-                question_text, answer = path_item.rsplit(" -> ", 1)
-                st.write(f"{question_text} -> **{answer}**")
+            for (node,answer) in st.session_state.path:
+                st.write(f"{node.question_text} -> **{answer}**")
 
             col_res1, col_res2 = st.columns(2)
             with col_res1:

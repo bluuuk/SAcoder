@@ -34,14 +34,10 @@ class CodingNode:
     def classification_label(self) -> str:
         return CodingLabels.get(self.label, "Unknown Classification")
 
-    def decision_path(self, path: list[tuple["CodingNode", str]]) -> list[str]:
-        return [f"{node.question_text} -> {answer}" for node, answer in path]
-
-
 CodingLabels = {
     "M1a": "Unfocused",
     "M1b": "Unclear",
-    "M2": "Not Security Related",
+    "M2": "Not CI/CD security Related",
     "T": "Outcome",
     "T'": "Outcome",
     "P1": "Incompletely Specified Practice",
