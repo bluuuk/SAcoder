@@ -62,11 +62,24 @@ def handle_action(action: CodingAction):
         st.error(str(error))
 
 def login():
-    st.info("Welcome! Please select your username to continue.")
+    st.markdown("""
+    # Usage
+
+    - You will apply the SAcoding methodology to classify *security advice items*.
+    - By answering a series of up to $10$ questions with `yes` or `no`, you will assign a *tag* to each item.
+    - You may select `both` for one question per item if you can justify both a “yes” and “no” answer.
+    - You can go back to the previous question at any time. If you go back after selecting `both`, all answers for the current item will reset.
+    - You can use the arrow keys to answer questions more quickly.
+    - At the end, press `enter` to save your result. If you misclick or misunderstand an item, you can reset and reclassify it before saving.
+    - After saving, the assigned tag(s) cannot be changed.
+    """)
+    
+    st.info("Please select your username to continue.")
     username = st.selectbox("Username", options=["C0", "C1", "C2"])
     if st.button("Start Coding", type="primary"):
         st.session_state.username = username
         reset()
+    
 
 def save_result():
     advice_doc = st.session_state.current_advice
@@ -134,7 +147,7 @@ else:
         if not step.is_leaf():
             question = step.question()
             st.subheader(f"{question.code}: {question.text}")
-            st.markdown(f"**💡Questions description💡**\n\n*{question.help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow. By saving a document with `enter` later, you will write it to the database and WON'T see it again!")
+            st.markdown(f"**💡Questions description💡**\n\n*{question.help_text}*")
 
             top_left, top_center, top_right = st.columns([1, 1, 1])
             with top_center:
