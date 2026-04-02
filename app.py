@@ -150,13 +150,8 @@ else:
             st.subheader(f"{question.code}: {question.text}")
             st.markdown(f"**💡Questions description💡**\n\n*{question.help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow. By saving a document with `enter` later, you will write it to the database and WON'T see it again!")
 
-            col1, col2, col3, col4 = st.columns(4)
-
-            with col1:
-                st.button("No", shortcut="left", on_click=handle_action, args=(CodingAction.NO,))
-            with col2:
-                st.button("Back", shortcut="down", on_click=go_back)
-            with col3:
+            top_left, top_center, top_right = st.columns([1, 1, 1])
+            with top_center:
                 st.button(
                     "Both",
                     shortcut="up",
@@ -164,8 +159,16 @@ else:
                     args=(CodingAction.BOTH,),
                     disabled=st.session_state.both_tag is not None or not step.supports_both(),
                 )
-            with col4:
+
+            middle_left, middle_center, middle_right = st.columns([1, 1, 1])
+            with middle_left:
+                st.button("No", shortcut="left", on_click=handle_action, args=(CodingAction.NO,))
+            with middle_right:
                 st.button("Yes ", shortcut="right", on_click=handle_action, args=(CodingAction.YES,))
+
+            bottom_left, bottom_center, bottom_right = st.columns([1, 1, 1])
+            with bottom_center:
+                st.button("Back", shortcut="down", on_click=go_back)
 
         else:
             
