@@ -20,12 +20,19 @@ class BranchState:
     current: CodingNode
     path: tuple[PathEntry, ...]
 
+
+@dataclass(frozen=True)
+class CompletedPath:
+    tag: str
+    path: tuple[PathEntry, ...]
+
+
 @dataclass
 class CodingSession:
     current: CodingNode = CodingTree
     path: list[PathEntry] = field(default_factory=list)
     deferred: BranchState | None = None
-    completed: list[tuple[str, tuple[PathEntry, ...]]] = field(default_factory=list)
+    completed: list[CompletedPath] = field(default_factory=list)
 
     def reset(self) -> None:
         self.current = CodingTree
@@ -79,14 +86,16 @@ class CodingSession:
         return self.current.is_leaf() and self.deferred is None
 
     def current_tags(self) -> list[str]:
-        return [tag for tag, _ in self.completed]
+        return [completed_path.tag for completed_path in self.completed]
 
-    def all_decision_paths(self) -> list[tuple[str, tuple[PathEntry, ...]]]:
+    def all_decision_paths(self) -> list[CompletedPath]:
         return self.completed
 
     def _advance_from_leaf(self) -> None:
         while self.current.is_leaf():
-            self.completed.append((self.current.label, tuple(self.path)))
+            self.completed.append(
+                CompletedPath(tag=self.current.label, path=tuple(self.path))
+            )
             if self.deferred is None:
                 return
             branch = self.deferred
