@@ -170,7 +170,7 @@ else:
         else:
             
             if st.session_state.both_tag:
-                st.success(f"➡️ Classified as: **{step.both_tag}** ({CodingLabels[st.session_state.both_tag]})")
+                st.success(f"➡️ Classified as: **{st.step.both_tag}** ({CodingLabels[st.session_state.both_tag]})")
 
             st.success(f"➡️ Classified as: **{step.label}** ({step.classification_label()})")
         
