@@ -35,7 +35,6 @@ Coding tree according to <https://academic.oup.com/cybersecurity/article/9/1/tya
 st.set_page_config(page_title="SAcoding Tool", layout="centered")
 st.title("🔐 Security Advice Coding")
 
-# username        for login
 if "username" not in st.session_state:
     st.session_state.username = None
 if "current" not in st.session_state:
@@ -130,7 +129,6 @@ else:
 
         step = st.session_state.current
         question = step.question()
-        result = step.result(st.session_state.path)
 
         if question is not None:
             # Display the help text ABOVE the question
@@ -146,11 +144,11 @@ else:
             with col3:
                 st.button("Yes ",shortcut="right",on_click=handle_answer, args=(True,))
 
-        elif result is not None:
-            st.success(f"➡️ Classified as: **{result.code}** ({result.label})")
+        else:
+            st.success(f"➡️ Classified as: **{step.label}** ({step.classification_label()})")
             st.markdown("### 🧭 Decision Path")
             
-            for path_item in result.decision_path:
+            for path_item in step.decision_path(st.session_state.path):
                 question_text, answer = path_item.rsplit(" -> ", 1)
                 st.write(f"{question_text} -> **{answer}**")
 
