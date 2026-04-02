@@ -81,11 +81,8 @@ class CodingSession:
     def current_tags(self) -> list[str]:
         return [tag for tag, _ in self.completed]
 
-    def all_decision_paths(self) -> list[tuple[str, list[str]]]:
-        return [
-            (tag, [f"{entry.node.question_text} -> {entry.action.value}" for entry in path])
-            for tag, path in self.completed
-        ]
+    def all_decision_paths(self) -> list[tuple[str, tuple[PathEntry, ...]]]:
+        return self.completed
 
     def _advance_from_leaf(self) -> None:
         while self.current.is_leaf():

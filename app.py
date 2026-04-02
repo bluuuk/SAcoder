@@ -53,9 +53,6 @@ def load_next_advice():
         return
     st.session_state.current_advice = db.get_next_advice(collection, st.session_state.username)
 
-def go_back():
-    st.session_state.coding_session.go_back()
-
 def handle_action(action: CodingAction):
     try:
         st.session_state.coding_session.answer(action)
@@ -132,10 +129,8 @@ else:
 
         session = st.session_state.coding_session
         step = session.current
-        question = step.question()
-
-        if question is not None:
-            # Display the help text ABOVE the question
+        if not step.is_leaf():
+            question = step.question()
             st.subheader(f"{question.code}: {question.text}")
             st.markdown(f"**💡Questions description💡**\n\n*{question.help_text}*\n\n*Hint*: Use the keyboard shortcuts left, right and down arrow. By saving a document with `enter` later, you will write it to the database and WON'T see it again!")
 
@@ -160,7 +155,7 @@ else:
                 st.button(
                     "Back",
                     shortcut="down",
-                    on_click=go_back,
+                    on_click=st.session_state.coding_session.go_back,
                     disabled=not session.can_go_back(),
                 )
 
@@ -170,12 +165,11 @@ else:
 
             st.markdown("### 🧭 Decision Path")
 
-            for index, (tag, path_lines) in enumerate(session.all_decision_paths(), start=1):
+            for index, (tag, path) in enumerate(session.all_decision_paths(), start=1):
                 if len(session.current_tags()) > 1:
                     st.markdown(f"**Tag {index}: {tag} ({CodingLabels[tag]})**")
-                for line in path_lines:
-                    question_text, action_text = line.rsplit(" -> ", 1)
-                    st.write(f"{question_text} -> **{action_text}**")
+                for entry in path:
+                    st.write(f"{entry.node.question_text} -> **{entry.action.value}**")
 
             col_res1, col_res2 = st.columns(2)
             with col_res1:
