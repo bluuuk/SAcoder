@@ -165,7 +165,8 @@ else:
 
             st.markdown("### 🧭 Decision Path")
 
-            for index, (tag, path) in enumerate(session.all_decision_paths(), start=1):
+            for index, whole_path in enumerate(session.all_decision_paths(), start=1):
+                tag, path = whole_path
                 if len(session.current_tags()) > 1:
                     st.markdown(f"**Tag {index}: {tag} ({CodingLabels[tag]})**")
                 for entry in path:
