@@ -170,7 +170,7 @@ else:
             for index, completed_path in enumerate(session.all_decision_paths(), start=1):
                 st.markdown(f"**Tag {index}: {completed_path.tag} ({CodingLabels[completed_path.tag]})**")
                 for entry in completed_path.path:
-                    st.write(f"{entry.node.question_text} -> **{entry.action.value}**")
+                    st.write(f"({entry.node.label}) {entry.node.question_text} -> **{entry.action.value}**")
 
             col_res1, col_res2 = st.columns(2)
             with col_res1:
