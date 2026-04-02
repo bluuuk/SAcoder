@@ -26,7 +26,6 @@ class CompletedPath:
     tag: str
     path: tuple[PathEntry, ...]
 
-
 @dataclass
 class CodingSession:
     current: CodingNode = CodingTree
@@ -94,7 +93,7 @@ class CodingSession:
     def _advance_from_leaf(self) -> None:
         while self.current.is_leaf():
             self.completed.append(
-                CompletedPath(tag=self.current.label, path=tuple(self.path))
+                CompletedPath(tag=self.current.label, path=self.path)
             )
             if self.deferred is None:
                 return

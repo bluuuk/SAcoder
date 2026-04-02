@@ -54,6 +54,8 @@ def load_next_advice():
     st.session_state.current_advice = db.get_next_advice(collection, st.session_state.username)
 
 def handle_action(action: CodingAction):
+    if st.session_state.coding_session.current.is_leaf():
+        return
     try:
         st.session_state.coding_session.answer(action)
     except ValueError as error:
@@ -166,10 +168,7 @@ else:
             st.markdown("### 🧭 Decision Path")
 
             for index, completed_path in enumerate(session.all_decision_paths(), start=1):
-                if len(session.current_tags()) > 1:
-                    st.markdown(
-                        f"**Tag {index}: {completed_path.tag} ({CodingLabels[completed_path.tag]})**"
-                    )
+                st.markdown(f"**Tag {index}: {tag} ({CodingLabels[tag]})**")
                 for entry in completed_path.path:
                     st.write(f"{entry.node.question_text} -> **{entry.action.value}**")
 
