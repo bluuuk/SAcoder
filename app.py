@@ -168,16 +168,13 @@ else:
                 st.button("Yes ", shortcut="right", on_click=handle_action, args=(CodingAction.YES,))
 
         else:
-            st.success(f"➡️ Classified as: **{step.label}** ({step.classification_label()})")
-            st.markdown("### 🧭 Decision Path")
+            
+            if st.session_state.both_tag:
+                st.success(f"➡️ Classified as: **{step.both_tag}** ({CodingLabels[st.session_state.both_tag]})")
 
-            if st.session_state.both_tag is not None:
-                st.markdown(
-                    f"**Tag 1: {st.session_state.both_tag} ({CodingLabels[st.session_state.both_tag]})**"
-                )
-                st.markdown(
-                    f"**Tag 2: {step.label} ({step.classification_label()})**"
-                )
+            st.success(f"➡️ Classified as: **{step.label}** ({step.classification_label()})")
+        
+            st.markdown("### 🧭 Decision Path")
 
             for node, action in st.session_state.path:
                 st.write(f"{node.question_text} -> **{action.value}**")
