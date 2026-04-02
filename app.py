@@ -2,10 +2,9 @@ import streamlit as st
 from pymongo import MongoClient
 import db
 from coding import (
-    CodingAction,
     CodingLabels,
-    CodingTree,
 )
+from coding_session import CodingAction, CodingSession
 
 if not st.secrets.get("mongo"):
     st.error("Missing `mongo` configuration in Streamlit secrets. Add a `[mongo]` section before running the app.")
@@ -38,19 +37,13 @@ st.title("🔐 Security Advice Coding")
 
 if "username" not in st.session_state:
     st.session_state.username = None
-if "current" not in st.session_state:
-    st.session_state.current = CodingTree
-if "path" not in st.session_state:
-    st.session_state.path = []
-if "both_tag" not in st.session_state:
-    st.session_state.both_tag = None
+if "coding_session" not in st.session_state:
+    st.session_state.coding_session = CodingSession()
 if "current_advice" not in st.session_state:
     st.session_state.current_advice = None
 
 def reset(do_rerun : bool = True):
-    st.session_state.current = CodingTree
-    st.session_state.path = []
-    st.session_state.both_tag = None
+    st.session_state.coding_session.reset()
     if do_rerun:
         st.rerun()
 
@@ -61,23 +54,17 @@ def load_next_advice():
     st.session_state.current_advice = db.get_next_advice(collection, st.session_state.username)
 
 def go_back():
-    if st.session_state.path:
-        previous_node, action = st.session_state.path.pop()
-        if action == CodingAction.BOTH:
-            st.session_state.both_tag = None
-        st.session_state.current = previous_node
+    st.session_state.coding_session.go_back()
 
 def handle_action(action: CodingAction):
-    current_node = st.session_state.current
-    if action == CodingAction.BOTH:
-        both_tag, _ = current_node.both_transition()
-        st.session_state.both_tag = both_tag.label
-    st.session_state.path.append((current_node, action))
-    st.session_state.current = current_node.next_step(action)
+    try:
+        st.session_state.coding_session.answer(action)
+    except ValueError as error:
+        st.error(str(error))
 
 def login():
     st.info("Welcome! Please select your username to continue.")
-    username = st.selectbox("Username", options=["C0", "C1"])
+    username = st.selectbox("Username", options=["C0", "C1", "C2"])
     if st.button("Start Coding", type="primary"):
         st.session_state.username = username
         reset()
@@ -88,8 +75,13 @@ def save_result():
         st.error("No advice item is loaded.")
         return
 
-    tag1 = st.session_state.current.label
-    tag2 = st.session_state.both_tag
+    tags = st.session_state.coding_session.current_tags()
+    tag1 = tags[0] if tags else None
+    tag2 = tags[1] if len(tags) > 1 else None
+
+    if tag1 is None:
+        st.error("No classification is ready to save.")
+        return
 
     saved = db.submit_tag(
         collection,
@@ -103,16 +95,12 @@ def save_result():
         st.error("Saving failed. The item may already be tagged or unavailable.")
         return
 
-    saved_labels = [CodingLabels[tag1]]
-    if tag2 is not None:
-        saved_labels.append(CodingLabels[tag2])
+    saved_labels = [CodingLabels[tag] for tag in tags]
 
     st.toast(f"Saved classification {' + '.join(saved_labels)}", icon="💾")
     load_next_advice()
     reset(False)
     
-
-# ---- UI RENDERING ---- #
 
 if st.session_state.username is None:
     login()
@@ -142,7 +130,8 @@ else:
         else:
             st.error("Loaded item, but no advice text field was found.")
 
-        step = st.session_state.current
+        session = st.session_state.coding_session
+        step = session.current
         question = step.question()
 
         if question is not None:
@@ -157,7 +146,7 @@ else:
                     shortcut="up",
                     on_click=handle_action,
                     args=(CodingAction.BOTH,),
-                    disabled=st.session_state.both_tag is not None or not step.supports_both(),
+                    disabled=not session.can_use_both(),
                 )
 
             middle_left, middle_center, middle_right = st.columns([1, 1, 1])
@@ -168,19 +157,25 @@ else:
 
             bottom_left, bottom_center, bottom_right = st.columns([1, 1, 1])
             with bottom_center:
-                st.button("Back", shortcut="down", on_click=go_back)
+                st.button(
+                    "Back",
+                    shortcut="down",
+                    on_click=go_back,
+                    disabled=not session.can_go_back(),
+                )
 
         else:
-            
-            if st.session_state.both_tag:
-                st.success(f"➡️ Classified as: **{st.session_state.both_tag}** ({CodingLabels[st.session_state.both_tag]})")
+            for tag in session.current_tags():
+                st.success(f"➡️ Classified as: **{tag}** ({CodingLabels[tag]})")
 
-            st.success(f"➡️ Classified as: **{step.label}** ({step.classification_label()})")
-        
             st.markdown("### 🧭 Decision Path")
 
-            for node, action in st.session_state.path:
-                st.write(f"{node.question_text} -> **{action.value}**")
+            for index, (tag, path_lines) in enumerate(session.all_decision_paths(), start=1):
+                if len(session.current_tags()) > 1:
+                    st.markdown(f"**Tag {index}: {tag} ({CodingLabels[tag]})**")
+                for line in path_lines:
+                    question_text, action_text = line.rsplit(" -> ", 1)
+                    st.write(f"{question_text} -> **{action_text}**")
 
             col_res1, col_res2 = st.columns(2)
             with col_res1:
