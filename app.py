@@ -4,7 +4,7 @@ import db
 from coding import (
     CodingLabels,
 )
-from coding_session import CodingAction, CodingSession
+from state import CodingAction, CodingSession
 
 if not st.secrets.get("mongo"):
     st.error("Missing `mongo` configuration in Streamlit secrets. Add a `[mongo]` section before running the app.")
