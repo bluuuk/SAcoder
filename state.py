@@ -93,7 +93,7 @@ class CodingSession:
     def _advance_from_leaf(self) -> None:
         while self.current.is_leaf():
             self.completed.append(
-                CompletedPath(tag=self.current.label, path=self.path)
+                CompletedPath(tag=self.current.label, path=tuple(self.path))
             )
             if self.deferred is None:
                 return

@@ -10,33 +10,28 @@ if not st.secrets.get("mongo"):
     st.error("Missing `mongo` configuration in Streamlit secrets. Add a `[mongo]` section before running the app.")
     st.stop()
       
-DATABASE=st.secrets["mongo"].get("database","dataset")
-COLLECTION=st.secrets["mongo"].get("collection","advices")
-
 @st.cache_resource
-def get_collection():
+def get_database():
     try:
         client = MongoClient(st.secrets["mongo"]["uri"])
     except Exception as e:
         st.error(f"Failed to connect to MongoDB: {e}")
         return None
     try:
-        return client[DATABASE][COLLECTION]
+        return client[st.secrets["mongo"].get("database","dataset")]
     except Exception as e:
         st.error(f"Failed to access MongoDB collection: {e}")
         return None
-
-collection = get_collection()
-
-"""
-Coding tree according to <https://academic.oup.com/cybersecurity/article/9/1/tyad013/7217003> 
-"""
+    
+database = get_database()
 
 st.set_page_config(page_title="SAcoding Tool", layout="centered")
 st.title("🔐 Security Advice Coding")
 
 if "username" not in st.session_state:
     st.session_state.username = None
+if "collection" not in st.session_state:
+    st.session_state.collection = None
 if "coding_session" not in st.session_state:
     st.session_state.coding_session = CodingSession()
 if "current_advice" not in st.session_state:
@@ -48,10 +43,10 @@ def reset(do_rerun : bool = True):
         st.rerun()
 
 def load_next_advice():
-    if collection is None or st.session_state.username is None:
+    if database is None or st.session_state.username is None:
         st.session_state.current_advice = None
         return
-    st.session_state.current_advice = db.get_next_advice(collection, st.session_state.username)
+    st.session_state.current_advice = db.get_next_advice(database[st.session_state.collection], st.session_state.username)
 
 def handle_action(action: CodingAction):
     if st.session_state.coding_session.current.is_leaf():
@@ -75,15 +70,17 @@ def login():
     """)
     
     st.info("Please select your username to continue.")
-    username = st.selectbox("Username", options=["C0", "C1", "C2"])
+    username = st.selectbox("Username", options=["C0", "C1"])
+    collection = st.selectbox("Dataset", options=["test", "owasp"])
     if st.button("Start Coding", type="primary"):
         st.session_state.username = username
+        st.session_state.collection = collection
         reset()
     
 
 def save_result():
     advice_doc = st.session_state.current_advice
-    if advice_doc is None or collection is None:
+    if advice_doc is None or database[st.session_state.collection] is None:
         st.error("No advice item is loaded.")
         return
 
@@ -96,7 +93,7 @@ def save_result():
         return
 
     saved = db.submit_tag(
-        collection,
+        database[st.session_state.collection],
         advice_doc["_id"],
         st.session_state.username,
         tag1,
@@ -123,9 +120,9 @@ else:
     st.sidebar.write(
         f"Logged in as: **{st.session_state.username}**"
     )
-    if collection is not None and st.session_state.username is not None:
+    if database[st.session_state.collection] is not None and st.session_state.username is not None:
         st.sidebar.write(
-            f"Remaining items: **{db.remaining_tags(collection, st.session_state.username)}**"
+            f"Remaining items: **{db.remaining_tags(database[st.session_state.collection], st.session_state.username)}**"
         )
     if st.sidebar.button("Logout"):
         st.session_state.username = None
