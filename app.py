@@ -190,6 +190,7 @@ else:
                     on_click=st.session_state.coding_session.go_back,
                     disabled=not session.can_go_back(),
                 )
+                st.rerun()
             with col_res2:
                 st.button("💾 Save Result", shortcut="enter", on_click=save_result)
             with col_res3:
