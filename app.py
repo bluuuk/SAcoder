@@ -182,8 +182,15 @@ else:
                 for entry in completed_path.path:
                     st.write(f"({entry.node.label}) {entry.node.question_text} -> **{entry.action.value}**")
 
-            col_res1, col_res2 = st.columns(2)
+            col_res1, col_res2, col_res3 = st.columns(3)
             with col_res1:
-                st.button("💾 Save Result", shortcut="enter", on_click=save_result)
+                st.button(
+                    "Back",
+                    shortcut="down",
+                    on_click=st.session_state.coding_session.go_back,
+                    disabled=not session.can_go_back(),
+                )
             with col_res2:
+                st.button("💾 Save Result", shortcut="enter", on_click=save_result)
+            with col_res3:
                 st.button("🔄 Reset",on_click=reset,args=(False,))

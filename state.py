@@ -40,7 +40,7 @@ class CodingSession:
         self.completed = []
 
     def can_go_back(self) -> bool:
-        return bool(self.path) or self.deferred is not None or bool(self.completed)
+        return bool(self.path) or self.deferred is not None
 
     def can_use_both(self) -> bool:
         return (
@@ -50,7 +50,7 @@ class CodingSession:
         )
 
     def go_back(self) -> None:
-        if self.deferred is not None or bool(self.completed):
+        if self.deferred is not None:
             self.reset()
             return
         if not self.path:
