@@ -56,7 +56,7 @@ class CodingSession:
         if not self.path:
             return
         previous = self.path.pop()
-        if previous.node.is_leaf():
+        if self.completed:
             self.completed.clear()
         self.current = previous.node
 
