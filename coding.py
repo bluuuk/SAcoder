@@ -61,17 +61,17 @@ Q8 = CodingNode(
     question_text="Is it intended that a security expert carry out this item?",
     help_text="Does following this advice require an expert understanding of security and security implementation in order to properly follow the advice? Someone following this advice item would have to be an expert in security to be able to understand it and successfully follow it, or be capable of extracting actionable steps from an otherwise non-actionable item based on their experience.",
 )
-# Q7 = CodingNode(
-#     label="Q7",
-#     yes=CodingNode("P6"),
-#     no=Q8,
-#     question_text="Is it intended that the end-user carry out this item?",
-#     help_text="Does the item suggest that the end-user can carry out this practice?",
-# )
+Q7 = CodingNode(
+    label="Q7",
+    yes=CodingNode("P6"),
+    no=Q8,
+    question_text="Is it intended that the end-user carry out this item?",
+    help_text="Does the item suggest that the end-user can carry out this practice?",
+)
 Q6 = CodingNode(
     label="Q6",
     no=CodingNode("P3"),
-    yes=Q8,
+    yes=Q7,
     question_text="Is it viable to accomplish with reasonable resources?",
     help_text="Could the advice item be followed with an acceptable cost?. E.g., the advice would not take years to follow, or have cost out of line with the anticipated benefit.",
 )
