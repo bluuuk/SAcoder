@@ -34,7 +34,7 @@ class CodingNode:
 CodingLabels = {
     "M1a": "Unfocused",
     "M1b": "Unclear",
-    "M2": "Not CI/CD security Related",
+    "M2": "Not Security Related",
     "T": "Outcome",
     "T'": "Outcome",
     "P1": "Incompletely Specified Practice",
