@@ -1,4 +1,4 @@
-[![DOI](https://shields.io)](https://doi.org/10.4230/LIPIcs.ESEM.2026.15)
+[![DOI](https://authors.library.caltech.edu/badge/DOI/10.4230/LIPIcs.ITCS.2017.22.svg)](https://doi.org/10.4230/LIPIcs.ESEM.2026.15)
 # SAcoder
 
 A small web tool for applying the SAcoding methodology to security advice, plus the scripts used to evaluate how consistently two coders apply it.
