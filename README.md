@@ -38,6 +38,8 @@ The leaf tags are:
 | `P6` | Practice for an end user |
 | `N` | Security principle |
 
+The coding tree is based on the work done by [Barrera et al.](https://dl.acm.org/doi/10.1145/3563392) where we included the recommendations of their [follow-up paper](https://doi.org/10.1093/cybsec/tyad013) as [Stewart et al.](https://www.sciencedirect.com/science/article/pii/S0167404825001002) implemented.
+
 **3. The analysis scripts (`evaluator.py`, `analyze_github_owasp.py`)**
 
 `evaluator.py` pulls the coded collection out of MongoDB and computes inter-coder agreement: exact tag set agreement, agreement on whether an item is actionable, per-question disagreement rates, and Cohen's kappa per tag. It can also export the raw comparison tables and generate publication assets such as the audience distribution plot and a LaTeX summary table.
